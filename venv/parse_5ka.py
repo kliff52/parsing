@@ -31,6 +31,7 @@ class Parse5ka:
             params = {}
 
             for itm in data['results']:
+                print(data['results'])
                 self.save_to_file(itm)
             time.sleep(1)
 
