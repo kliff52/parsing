@@ -41,12 +41,21 @@ class Parse5ka:
                 continue
             data = response.json()
             for itm in data:
-                print(itm['parent_group_code'])
-                self.parse(data)
+                self.parse(itm)
             time.sleep(1)
 
     def parse(self, data: dict):
-        print(data)
+        url = f'{self.api_url}{self.endpoint_so}'
+        while url:
+            response = requests.get(url, params=self.params, headers=self.headers)
+            if response.status_code >= 500:
+                time.sleep(10)
+                continue
+            data1 = response.json()
+            print(data1)
+
+            self.save_to_file(data)
+            time.sleep(1)
 
 
     def save_to_file(self, data: dict):
