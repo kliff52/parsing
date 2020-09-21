@@ -39,28 +39,44 @@ class Parse5ka:
             if response.status_code >= 500:
                 time.sleep(10)
                 continue
-            data = response.json()
-            for itm in data:
-                self.parse(itm)
-            time.sleep(1)
+            data = response.json() # Дата категорий
+            self.parse(data)
+            time.sleep(2)
 
     def parse(self, data: dict):
         url = f'{self.api_url}{self.endpoint_so}'
+        # params = copy(self.params)
+
         while url:
-            response = requests.get(url, params=self.params, headers=self.headers)
-            if response.status_code >= 500:
-                time.sleep(10)
-                continue
-            data1 = response.json()
-            print(data1)
+            print(url)
+            for i in data:
+                print(i['parent_group_code'])
+            # print(data[])
+                pyload = {"categories": i['parent_group_code']}
+                response = requests.get(url, params = pyload, headers=self.headers)
+                if response.status_code >= 500:
+                    time.sleep(10)
+                    continue
+                data1 = response.json()  # Дата итемов
+                print(data1['results'])
+                if data1['results'] =='[]':
+                    continue
+                else:
 
-            self.save_to_file(data)
-            time.sleep(1)
+                # url = data1['next']
+            # params = {}
+            #     for itm in data1['results']:
+                    print('отпровляю в фаил')
+                    # for i in
+                    self.save_to_file(data1['results'],data)
+        time.sleep(1)
 
 
-    def save_to_file(self, data: dict):
-        file_path = Path('data').joinpath(f"{data['parent_group_name']}.json")
+    def save_to_file(self, data: dict, category : dict):
+        print('Принял -----------', data, ' -------------',category)
+        file_path = Path('data').joinpath(f"{category['parent_group_name']}.json")
         with open(file_path, 'w') as file:
+            print('Записал-', data, category)
             json.dump(data, file, ensure_ascii=False)
 
 
