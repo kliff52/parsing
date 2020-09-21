@@ -45,13 +45,10 @@ class Parse5ka:
 
     def parse(self, data: dict):
         url = f'{self.api_url}{self.endpoint_so}'
-        # params = copy(self.params)
-
         while url:
             print(url)
             for i in data:
                 print(i['parent_group_code'])
-            # print(data[])
                 pyload = {"categories": i['parent_group_code']}
                 response = requests.get(url, params = pyload, headers=self.headers)
                 if response.status_code >= 500:
@@ -59,22 +56,17 @@ class Parse5ka:
                     continue
                 data1 = response.json()  # Дата итемов
                 print(data1['results'])
-                if data1['results'] =='[]':
+                if len(data1['results']) == 0:
                     continue
                 else:
-
-                # url = data1['next']
-            # params = {}
-            #     for itm in data1['results']:
                     print('отпровляю в фаил')
-                    # for i in
-                    self.save_to_file(data1['results'],data)
+                    self.save_to_file(data1['results'],i['parent_group_name'])
         time.sleep(1)
 
 
-    def save_to_file(self, data: dict, category : dict):
+    def save_to_file(self, data: dict, category: dict):
         print('Принял -----------', data, ' -------------',category)
-        file_path = Path('data').joinpath(f"{category['parent_group_name']}.json")
+        file_path = Path('data').joinpath(f"{category}.json")
         with open(file_path, 'w') as file:
             print('Записал-', data, category)
             json.dump(data, file, ensure_ascii=False)
