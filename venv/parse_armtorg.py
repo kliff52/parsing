@@ -2,6 +2,7 @@
 # Ресурс armtorg.ru. Нужно спарсить в ексель контакты компаний что продают Фланцы.
 import bs4
 import requests
+import time
 # from pymongo import MongoClient
 
 class GbBlogParser:
@@ -13,6 +14,7 @@ class GbBlogParser:
         self.domain = domain
         self.post_domain = 'https://armtorg.ru'
         self.start_url = f'{self.domain}'
+        self.post_link = set()
         self.urls_pag = set()
         self.done_urls = set()  # множество для уникальности
         self.post_urls = set()
@@ -29,10 +31,14 @@ class GbBlogParser:
         ul = soup.find('ul', attrs={'class': "pagination pagination-sm"})
         li = ul.find_all('li')
         links = {f'{self.domain}{itm.find("a").attrs.get("href")}' for itm in li if itm.find('a').attrs.get('href')}
+        # print(links)
         return links
 
     def get_post(self, post):
-        print(post)
+        for i in post:
+            response = requests.get(i, headers=self.__headers)
+            for i in response:
+                print(i)
         return post
         pass
 #
@@ -47,10 +53,13 @@ class GbBlogParser:
             link.find_all('href')
             if link.get('title') == None:
                 continue
-            print(f'{self.post_domain}{link.get("href")}')
+            over_link = f'{self.post_domain}{link.get("href")}'
+            # print(over_link)
+            # return over_link
+            # print(f'{self.post_domain}{link.get("href")}')
             # print(link)
 
-        return links
+        return over_link
 
 
     def parse(self):
@@ -59,8 +68,15 @@ class GbBlogParser:
             soup = self.get_soup(url)  # получаем суп
             self.urls_pag.update(self.get_pagination(soup)) #забераем ссылки на другие страницы
             self.urls_pag.difference_update(self.done_urls) #удаляем то что отработали
-            url = self.urls_pag.pop() if self.urls_pag else None
-            self.post_urls.update(self.get_post_urls(soup)) # Получаем ссылки на посты
+            url = self.urls_pag.pop() if self.urls_pag else None # Забераем все ели не none
+            self.post_urls.update(self.get_post_urls(soup).split(',')) # Получаем ссылки на посты
+            self.get_post(self.post_urls)
+            # self.get_post(self.post_urls)
+            # print(self.get_post(self.post_urls))
+            print(len(self.post_urls))
+            print(self.post_urls)
+            print(len(self.done_urls))
+            time.sleep(1)
             # post = self.get_post(self.post)
 #         for itm in self.post_urls:
 #             self.save_to_mongo({'url': itm})
