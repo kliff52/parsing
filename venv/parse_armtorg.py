@@ -14,6 +14,7 @@ class GbBlogParser:
         self.domain = domain
         self.post_domain = 'https://armtorg.ru'
         self.start_url = f'{self.domain}'
+        self.post_link_done = set()
         self.post_link = set()
         self.urls_pag = set()
         self.done_urls = set()  # множество для уникальности
@@ -31,34 +32,29 @@ class GbBlogParser:
         ul = soup.find('ul', attrs={'class': "pagination pagination-sm"})
         li = ul.find_all('li')
         links = {f'{self.domain}{itm.find("a").attrs.get("href")}' for itm in li if itm.find('a').attrs.get('href')}
-        # print(links)
         return links
 
     def get_post(self, post):
         for i in post:
             response = requests.get(i, headers=self.__headers)
-            for i in response:
-                print(i)
-        return post
-        pass
+            soup = bs4.BeautifulSoup(response.text, 'lxml')
+            self.post_link_done.add(i)            # Записываем то что мы уже прошли
+            name = soup.find('h1', attrs={'class': "companies-title margin-top_none"}).contents
+            print(name)
+            date_udate = soup.find('table', attrs={'class':"goods-item__table"}).contents
+
+        return name
+
 #
 #     # todo найти список постов и вернуть список url на посты
 
     def get_post_urls(self, soup):
         wrapper = soup.find('div', attrs={'class': "table-responsive"})
-        posts = wrapper.find_all('table', attrs={'class': "t1 table table-striped"})
-
-        # links = {f'{self.post_domain}{itm.find_all("td").attrs.get("href")}' for itm in posts if itm.find('a').attrs.get('href')}
         for link in wrapper('a', attrs={'class':False}):   #Получил ссылки на компании.
             link.find_all('href')
             if link.get('title') == None:
                 continue
             over_link = f'{self.post_domain}{link.get("href")}'
-            # print(over_link)
-            # return over_link
-            # print(f'{self.post_domain}{link.get("href")}')
-            # print(link)
-
         return over_link
 
 
@@ -72,10 +68,9 @@ class GbBlogParser:
             self.post_urls.update(self.get_post_urls(soup).split(',')) # Получаем ссылки на посты
             self.get_post(self.post_urls)
             # self.get_post(self.post_urls)
-            # print(self.get_post(self.post_urls))
-            print(len(self.post_urls))
-            print(self.post_urls)
-            print(len(self.done_urls))
+            # print(len(self.post_urls))
+            # print(self.post_urls)
+            # print(len(self.done_urls))
             time.sleep(1)
             # post = self.get_post(self.post)
 #         for itm in self.post_urls:
