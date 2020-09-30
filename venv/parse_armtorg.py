@@ -3,6 +3,7 @@
 import bs4
 import requests
 import time
+import pandas as pd
 # from pymongo import MongoClient
 
 class GbBlogParser:
@@ -16,6 +17,7 @@ class GbBlogParser:
         self.start_url = f'{self.domain}'
         self.post_link_done = set()
         # print(self.post_link_done)
+        self.date = set()
         self.post_link = set()
         self.urls_pag = set()
         self.done_urls = set()  # множество для уникальности
@@ -33,25 +35,22 @@ class GbBlogParser:
         ul = soup.find('ul', attrs={'class': "pagination pagination-sm"})
         li = ul.find_all('li')
         links = {f'{self.domain}{itm.find("a").attrs.get("href")}' for itm in li if itm.find('a').attrs.get('href')}
-        # print(links)
         return links
 
     def get_post(self, post):
         for i in post:
             response = requests.get(i, headers=self.__headers)
             soup = bs4.BeautifulSoup(response.text, 'lxml')
-            for i in soup:
-                # print(len(soup))
-                name = soup.find('h1', attrs={'class': "companies-title margin-top_none"}).contents
-                # print(name)
-            self.post_link_done.add(i)            # Записываем то что мы уже прошли
-
-            date_udate = soup.find('table', attrs={'class':"goods-item__table"}).contents
-            # dictonary = dict(zip(name,name))
-            # print(dictonary)
-        return name
-
-#
+            da = []
+            # for i in soup:
+            name = soup.find('h1', attrs={'class': "companies-title margin-top_none"}).contents
+            date_udate = soup.find('table', attrs= {'class': "goods-item__table"}).text.split("\n")
+            for itm in date_udate:
+                if itm == '' and 'Прайс лист компании':
+                    continue
+                else:
+                    da.append(itm)
+        return name, da
 #     # todo найти список постов и вернуть список url на посты
 
     def get_post_urls(self, soup):
@@ -64,38 +63,41 @@ class GbBlogParser:
                         continue
                     over_link = f'{self.post_domain}{i}'
                     links.add(over_link)
-        # print(links)
         return links
 
     def parse(self):
         url = self.start_url
+        date = []
         while url:
             soup = self.get_soup(url)  # получаем суп
             self.urls_pag.update(self.get_pagination(soup)) #забераем ссылки на другие страницы
+            print(len(self.done_urls))
             self.urls_pag.difference_update(self.done_urls) #удаляем то что отработали
             url = self.urls_pag.pop() if self.urls_pag else None # Забераем все ели не none
             self.post_urls.update(self.get_post_urls(soup))  # Получаем ссылки на посты
+
             for a in self.post_urls:
                 x = []
                 x.append(a)
-                print(x)
-                print(self.get_post(x))
-            # self.get_post(self.post_urls)
-            #     g = self.get_post(a)
-
+                if a in self.post_link_done:
+                    continue
+                else:
+                    date.append(self.get_post(x))
+                    self.post_link_done.add(a)  # Записываем то что мы уже прошли
+            print(len(self.post_link_done))
+            print(date)
+            self.save_to_exel(date)
             time.sleep(1)
-            # post = self.get_post(self.post)
-#         for itm in self.post_urls:
-#             self.save_to_mongo({'url': itm})
+            print()
         print('hello')
-#
-#     # todo сохранить в БД
-#     def save_to_mongo(self, data: dict):
-#         db = self.mo_client['gb_parse_09']
-#         collection = db['gb_blog']
-#         collection.insert_one(data)
-#         print(1)
-#
+
+    # todo сохранить в БД
+    def save_to_exel(self, data):
+        df = pd.DataFrame(data)
+        writer = pd.ExcelWriter('write.xlsx', engine='xlsxwriter')
+        df.to_excel(writer, 'Sheet1')
+        writer.save()
+        print('Сохранено')
 
 if __name__ == '__main__':
     parser = GbBlogParser('https://armtorg.ru/goods/by-category/Фланцы')
