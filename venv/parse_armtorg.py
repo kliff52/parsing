@@ -16,7 +16,6 @@ class GbBlogParser:
         self.post_domain = 'https://armtorg.ru'
         self.start_url = f'{self.domain}'
         self.post_link_done = set()
-        # print(self.post_link_done)
         self.date = set()
         self.post_link = set()
         self.urls_pag = set()
@@ -37,20 +36,86 @@ class GbBlogParser:
         links = {f'{self.domain}{itm.find("a").attrs.get("href")}' for itm in li if itm.find('a').attrs.get('href')}
         return links
 
-    def get_post(self, post):
-        for i in post:
-            response = requests.get(i, headers=self.__headers)
-            soup = bs4.BeautifulSoup(response.text, 'lxml')
-            da = []
-            # for i in soup:
-            name = soup.find('h1', attrs={'class': "companies-title margin-top_none"}).contents
-            date_udate = soup.find('table', attrs= {'class': "goods-item__table"}).text.split("\n")
-            for itm in date_udate:
-                if itm == '' and 'Прайс лист компании':
+    def post_parse(self, soup, url) -> dict:
+        contact = soup.find_all('table', attrs = {'class':"goods-item__table"})
+        # cont = contact.find('strong')
+        var=[]
+        for r in contact:
+            cont = r.find_all('strong')
+            for i in cont:
+                print(i.get_text())
+            # print(cont)
+            dlin = (len(cont))
+            print(dlin)
+            for text in r.find_all(text= True):
+                if text == '\n':
                     continue
-                else:
-                    da.append(itm)
-        return name, da
+
+                # print(text)
+                # elif text == '!:':
+                #     print(find_next_sibling())
+                # print('pass')
+                # var = []
+                var.append(text)
+        print(cont[0])
+        if dlin == int(7):
+            print(dlin)
+            print('adres-', var[1:2] )
+            print('city -', var[3:4])
+            print('Pos addres-',var[5:6])
+            print('Telephone- ', var[7:10])
+            print('Kontakt person ', var[11:12])
+            print('site', var[17:18])
+        if dlin == int(6):
+            print(dlin)
+            print('adres-', var[1:2] )
+            print('city -', var[3:4])
+            print('Pos addres-',var[5:6])
+            print('Telephone- ', var[7:9])
+            print('Kontakt person ', var[10:11])
+            print('site', var[14:15])
+        if dlin == int(5):
+            print(dlin)
+            print('adres-', var[1:2] )
+            print('city -', var[3:4])
+            print('Pos addres-',None)
+            print('Telephone- ', var[5:7])
+            print('Kontakt person ', var[8:9])
+            print('site', var[12:13])
+
+        print(var)
+            # print(var[0])
+
+        #
+        # a = contact.find('td', attrs={'class': "field"}).text
+        # b = contact.find('td', attrs={'class': "field"}).find_next_sibling().text
+        # print(a,b)
+
+        # post_data = {
+        #     'url': url,
+        #     'title': soup.find('title').text,
+        #     'image': article.find('img').attrs.get('src'),
+        #     'pu_date': dt.datetime.strptime(article.find('time').attrs.get('datetime'), '%Y-%m-%dT%H:%M:%S%z'),
+        #     'author_name': author.text,
+        #     'author_url': f'{self.domain}{author.parent.attrs.get("href")}',
+        #     'tags': [(itm.text, f'{self.domain}{itm.attrs.get("href")}') for itm in
+        #              article.find_all('a', attrs={'class': 'small'})],
+        # }
+        return pos_data1
+
+        # def get_post(self, post):
+        #     for i in post:
+        #         response = requests.get(i, headers=self.__headers)
+        #         soup = bs4.BeautifulSoup(response.text, 'lxml')
+        #         da = []
+        #         name = soup.find('h1', attrs={'class': "companies-title margin-top_none"}).contents
+        #         date_udate = soup.find('table', attrs= {'class': "goods-item__table"}).text.split("\n")
+        #         for itm in date_udate:
+        #             if itm == '' and 'Прайс лист компании':
+        #                 continue
+        #             else:
+        #                 da.append(itm)
+        #     return name, da
 #     # todo найти список постов и вернуть список url на посты
 
     def get_post_urls(self, soup):
@@ -67,28 +132,31 @@ class GbBlogParser:
 
     def parse(self):
         url = self.start_url
-        date = []
+        # date = []
         while url:
             soup = self.get_soup(url)  # получаем суп
             self.urls_pag.update(self.get_pagination(soup)) #забераем ссылки на другие страницы
-            print(len(self.done_urls))
             self.urls_pag.difference_update(self.done_urls) #удаляем то что отработали
             url = self.urls_pag.pop() if self.urls_pag else None # Забераем все ели не none
             self.post_urls.update(self.get_post_urls(soup))  # Получаем ссылки на посты
-
-            for a in self.post_urls:
-                x = []
-                x.append(a)
-                if a in self.post_link_done:
+            for itm in self.post_urls:
+                # x = []
+                # x.append(a)
+                if itm in self.post_link_done:
                     continue
                 else:
-                    date.append(self.get_post(x))
-                    self.post_link_done.add(a)  # Записываем то что мы уже прошли
-            print(len(self.post_link_done))
-            print(date)
-            self.save_to_exel(date)
-            time.sleep(1)
-            print()
+                    post_soup = self.get_soup(itm)
+                    post_data = self.post_parse(post_soup, itm)
+                    # print(post_data)
+                    # for i in contact.find_all('td', attrs={'class': "field"}).text)
+                    # self.alchemy_db.save_post_from_dict(post_data)
+            #         date.append(self.get_post(x))
+            #         self.post_link_done.add(a)  # Записываем то что мы уже прошли
+            # print(len(self.post_link_done))
+            # print(date)
+            # self.save_to_exel(date)
+            # time.sleep(1)
+            # print()
         print('hello')
 
     # todo сохранить в БД
