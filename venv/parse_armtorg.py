@@ -38,70 +38,71 @@ class GbBlogParser:
 
     def post_parse(self, soup, url) -> dict:
         contact = soup.find_all('table', attrs = {'class':"goods-item__table"})
-        # cont = contact.find('strong')
         var=[]
         for r in contact:
             cont = r.find_all('strong')
-            for i in cont:
-                print(i.get_text())
-            # print(cont)
             dlin = (len(cont))
-            print(dlin)
+            # print(dlin)
             for text in r.find_all(text= True):
                 if text == '\n':
                     continue
-
-                # print(text)
-                # elif text == '!:':
-                #     print(find_next_sibling())
-                # print('pass')
-                # var = []
                 var.append(text)
-        print(cont[0])
         if dlin == int(7):
             print(dlin)
-            print('adres-', var[1:2] )
-            print('city -', var[3:4])
-            print('Pos addres-',var[5:6])
-            print('Telephone- ', var[7:10])
-            print('Kontakt person ', var[11:12])
-            print('site', var[17:18])
+            post_data = {
+                'name': soup.find('h1').text,
+                'date': soup.find('div', attrs = {'class':"col-md-12"}).text,
+                'adres': var[1:2],
+                'city': var[3:4],
+                'pos_addres-': var[5:6],
+                'telephone- ': var[7:10],
+                'kontakt person ': var[11:12],
+                'site': var[17:18],
+                'url': url,
+            }
+            # print(post_data)
         if dlin == int(6):
             print(dlin)
-            print('adres-', var[1:2] )
-            print('city -', var[3:4])
-            print('Pos addres-',var[5:6])
-            print('Telephone- ', var[7:9])
-            print('Kontakt person ', var[10:11])
-            print('site', var[14:15])
+            post_data = {
+                'name': soup.find('h1').text,
+                'date': soup.find('div', attrs={'class': "col-md-12"}).text,
+                'adres': var[1:2],
+                'city': var[3:4],
+                'pos_addres-': var[5:6],
+                'telephone- ': var[7:9],
+                'kontakt person ': var[10:11],
+                'site': var[14:15],
+                'url': url,
+            }
+            # print(post_data)
         if dlin == int(5):
             print(dlin)
-            print('adres-', var[1:2] )
-            print('city -', var[3:4])
-            print('Pos addres-',None)
-            print('Telephone- ', var[5:7])
-            print('Kontakt person ', var[8:9])
-            print('site', var[12:13])
-
-        print(var)
-            # print(var[0])
-
-        #
-        # a = contact.find('td', attrs={'class': "field"}).text
-        # b = contact.find('td', attrs={'class': "field"}).find_next_sibling().text
-        # print(a,b)
-
-        # post_data = {
-        #     'url': url,
-        #     'title': soup.find('title').text,
-        #     'image': article.find('img').attrs.get('src'),
-        #     'pu_date': dt.datetime.strptime(article.find('time').attrs.get('datetime'), '%Y-%m-%dT%H:%M:%S%z'),
-        #     'author_name': author.text,
-        #     'author_url': f'{self.domain}{author.parent.attrs.get("href")}',
-        #     'tags': [(itm.text, f'{self.domain}{itm.attrs.get("href")}') for itm in
-        #              article.find_all('a', attrs={'class': 'small'})],
-        # }
-        return pos_data1
+            post_data = {
+                'name': soup.find('h1').text,
+                'date': soup.find('div', attrs={'class': "col-md-12"}).text,
+                'adres': var[1:2],
+                'city': var[3:4],
+                'pos_addres-': None,
+                'telephone- ':var[5:7],
+                'kontakt person ': var[8:9],
+                'site': var[12:13],
+                'url': url,
+            }
+        if dlin == int(4):
+            print(dlin)
+            post_data = {
+                'name': soup.find('h1').text,
+                'date': soup.find('div', attrs={'class': "col-md-12"}).text,
+                'adres': var[1:2],
+                'city': var[3:4],
+                'pos_addres-': None,
+                'telephone- ': var[5:6],
+                'kontakt person ': var[7:8],
+                'site': var[8:9],
+                'url': url,
+            }
+        print(post_data)
+        return post_data
 
         # def get_post(self, post):
         #     for i in post:
@@ -146,6 +147,7 @@ class GbBlogParser:
                     continue
                 else:
                     post_soup = self.get_soup(itm)
+                    # print(post_soup)
                     post_data = self.post_parse(post_soup, itm)
                     # print(post_data)
                     # for i in contact.find_all('td', attrs={'class': "field"}).text)
@@ -155,7 +157,7 @@ class GbBlogParser:
             # print(len(self.post_link_done))
             # print(date)
             # self.save_to_exel(date)
-            # time.sleep(1)
+            time.sleep(2)
             # print()
         print('hello')
 
