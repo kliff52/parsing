@@ -4,6 +4,8 @@ import bs4
 import requests
 import time
 import pandas as pd
+from database import GBBlogDB
+
 # from pymongo import MongoClient
 
 class GbBlogParser:
@@ -22,6 +24,7 @@ class GbBlogParser:
         self.done_urls = set()  # множество для уникальности
         self.post_urls = set()
         # self.mo_client = MongoClient('mongodb://localhost:27017')
+        self.alchemy_db = GBBlogDB('sqlite:///armtorg.db')
 
     def get_soup(self, url):
         # todo сделать обработку статус кодов и ошибок
@@ -101,7 +104,7 @@ class GbBlogParser:
                 'site': var[8:9],
                 'url': url,
             }
-        print(post_data)
+        # print(post_data)
         return post_data
 
         # def get_post(self, post):
@@ -149,6 +152,7 @@ class GbBlogParser:
                     post_soup = self.get_soup(itm)
                     # print(post_soup)
                     post_data = self.post_parse(post_soup, itm)
+                    self.alchemy_db.save_post_from_dict(post_data)
                     # print(post_data)
                     # for i in contact.find_all('td', attrs={'class': "field"}).text)
                     # self.alchemy_db.save_post_from_dict(post_data)
